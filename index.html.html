@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Healthy Runner Demo</title>
+  <style>
+    body { margin:0; overflow:hidden; background:#fff; }
+    #gameCanvas { background:#eee; display:block; margin:0 auto; }
+  </style>
+</head>
+<body>
+<canvas id="gameCanvas" width="600" height="400"></canvas>
+<script>
+let canvas = document.getElementById("gameCanvas");
+let ctx = canvas.getContext("2d");
+
+// اللاعب
+let player = {x: 300, y: 340, width: 50, height:50, color:"blue", health: 100, sugar: 50};
+
+// الطعام
+let foods = [];
+for(let i=0;i<5;i++){
+    foods.push({x: Math.random()*550, y: Math.random()*-400, healthy: Math.random()>0.5});
+}
+
+// التحكم
+let keys = {};
+document.addEventListener("keydown", e=>keys[e.key]=true);
+document.addEventListener("keyup", e=>keys[e.key]=false);
+
+function gameLoop(){
+    ctx.clearRect(0,0,600,400);
+
+    // حركة اللاعب
+    if(keys["ArrowLeft"]) player.x -=5;
+    if(keys["ArrowRight"]) player.x +=5;
+
+    // رسم اللاعب
+    ctx.fillStyle = "blue";
+    ctx.fillRect(player.x, player.y, player.width, player.height);
+
+    // تحديث الطعام
+    for(let food of foods){
+        food.y += 3;
+        ctx.fillStyle = food.healthy ? "green" : "red";
+        ctx.fillRect(food.x, food.y, 30,30);
+
+        // التحقق من التصادم
+        if(player.x < food.x+30 && player.x+player.width > food.x &&
+           player.y < food.y+30 && player.y+player.height > food.y){
+            if(food.healthy){
+                player.health = Math.min(player.health+10,100);
+                player.sugar = Math.max(player.sugar-5,0);
+            }else{
+                player.health = Math.max(player.health-10,0);
+                player.sugar = Math.min(player.sugar+15,100);
+            }
+            food.y = Math.random()*-400;
+            food.x = Math.random()*550;
+            food.healthy = Math.random()>0.5;
+        }
+    }
+
+    // رسم HUD
+    ctx.fillStyle="red";
+    ctx.fillRect(10,10,100,10);
+    ctx.fillStyle="green";
+    ctx.fillRect(10,10,player.health,10);
+    ctx.fillStyle=player.sugar<70?"yellow":"red";
+    ctx.fillRect(10,30,player.sugar,10);
+
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+</script>
+</body>
+</html>
